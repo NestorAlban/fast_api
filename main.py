@@ -1,4 +1,5 @@
 #Python
+from importlib.resources import path
 from typing import Optional
 from enum import Enum
 
@@ -8,6 +9,7 @@ from pydantic import Field
 
 #FastAPI
 from fastapi import FastAPI
+from fastapi import status
 from fastapi import Body, Query, Path
 
 app= FastAPI()
@@ -48,38 +50,46 @@ class PersonBase(BaseModel):
     hair_color: Optional[HairColor]=Field(default=None, example="black")
     is_married: Optional[bool]=Field(default=None, example=False)
 
-
 class Person(PersonBase):
     password: str=Field(..., min_length=8)
-
-#    class Config:
-#        schema_extra={
-#            "example":{
-#                "first_name":"Néstor",
-#                "last_name":"Albán Quevedo",
-#                "age":20,
-#                "hair_color":"blonde",
-#                "is_married":False
-#            }
-#        }
+    #class Config:
+    #    schema_extra={
+    #        "example":{
+    #            "first_name":"Néstor",
+    #            "last_name":"Albán Quevedo",
+    #            "age":20,
+    #            "hair_color":"blonde",
+    #            "is_married":False
+    #        }
+    #    }
 
 class PersonOut(PersonBase):
     pass
 
 
-@app.get("/")
+@app.get(
+    path="/",
+    status_code=status.HTTP_200_OK
+    )
 def home():
     return {"Hello":"World"}
 
 #Request and response body
 
-@app.post("/person/new", response_model=PersonOut)
+@app.post(
+    path="/person/new", 
+    response_model=PersonOut,
+    status_code=status.HTTP_201_CREATED
+    )
 def create_person(person: Person=Body(...)):
     return person
 
 #validaciones:query parameters
 
-@app.get("/person/detail")
+@app.get(
+    path="/person/detail",
+    status_code=status.HTTP_200_OK
+    )
 def show_person (
     name: Optional[str]=Query(
         None,
