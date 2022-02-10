@@ -1,5 +1,7 @@
 #Python
+from email.policy import default
 from importlib.resources import path
+from tkinter.tix import Form
 from typing import Optional
 from enum import Enum
 
@@ -10,7 +12,7 @@ from pydantic import Field
 #FastAPI
 from fastapi import FastAPI
 from fastapi import status
-from fastapi import Body, Query, Path
+from fastapi import Body, Query, Path, Form
 
 app= FastAPI()
 
@@ -51,7 +53,10 @@ class PersonBase(BaseModel):
     is_married: Optional[bool]=Field(default=None, example=False)
 
 class Person(PersonBase):
-    password: str=Field(..., min_length=8)
+    password: str=Field(
+        ..., 
+        min_length=8
+        )
     #class Config:
     #    schema_extra={
     #        "example":{
@@ -66,6 +71,15 @@ class Person(PersonBase):
 class PersonOut(PersonBase):
     pass
 
+class LoginOut(BaseModel):
+    username:str=Field(
+        ..., 
+        max_length=20, 
+        example="miguel2021"
+        )
+    message: str=Field(
+        default="Login Succesfully"
+    )
 
 @app.get(
     path="/",
@@ -132,3 +146,14 @@ def update_person(
     #results.update(location.dict())
     #return results
     return person
+
+@app.post(
+    path="/login",
+    response_model=LoginOut,
+    status_code=status.HTTP_200_OK
+)
+def login(
+    username: str=Form(...), 
+    password: str=Form(...)
+    ):
+    return LoginOut(username=username)
